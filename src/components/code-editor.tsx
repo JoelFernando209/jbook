@@ -1,12 +1,11 @@
-import React, { useRef } from "react";
+import "./code-editor.css";
+import "./syntax.css";
+import { useRef } from "react";
 import MonacoEditor, { EditorDidMount } from "@monaco-editor/react";
 import prettier from "prettier";
 import parser from "prettier/parser-babel";
 import codeShift from "jscodeshift";
 import Highlighter from "monaco-jsx-highlighter";
-
-import "./code-editor.css";
-import "./syntax.css";
 
 interface CodeEditorProps {
   initialValue: string;
@@ -18,7 +17,6 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ onChange, initialValue }) => {
 
   const onEditorDidMount: EditorDidMount = (getValue, monacoEditor) => {
     editorRef.current = monacoEditor;
-
     monacoEditor.onDidChangeModelContent(() => {
       onChange(getValue());
     });
@@ -31,7 +29,6 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ onChange, initialValue }) => {
       codeShift,
       monacoEditor
     );
-
     highlighter.highLightOnDidChangeModelContent(
       () => {},
       () => {},
@@ -42,28 +39,21 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ onChange, initialValue }) => {
 
   const onFormatClick = () => {
     // get current value from editor
-    const unformattedValue = editorRef.current.getModel().getValue();
-
-    let formattedValue;
+    const unformatted = editorRef.current.getModel().getValue();
 
     // format that value
-    try {
-      formattedValue = prettier
-        .format(unformattedValue, {
-          parser: "babel",
-          plugins: [parser],
-          useTabs: false,
-          semi: true,
-          singleQuote: true,
-        })
-        .replace(/\n$/, "");
-    } catch (error) {
-      console.error(error);
-    }
+    const formatted = prettier
+      .format(unformatted, {
+        parser: "babel",
+        plugins: [parser],
+        useTabs: false,
+        semi: true,
+        singleQuote: true,
+      })
+      .replace(/\n$/, "");
 
-    // set the formatted value back to the editor
-
-    editorRef.current.setValue(formattedValue);
+    // set the formatted value back in the editor
+    editorRef.current.setValue(formatted);
   };
 
   return (
@@ -74,10 +64,12 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ onChange, initialValue }) => {
       >
         Format
       </button>
-
       <MonacoEditor
         editorDidMount={onEditorDidMount}
         value={initialValue}
+        theme="dark"
+        language="javascript"
+        height="100%"
         options={{
           wordWrap: "on",
           minimap: { enabled: false },
@@ -88,9 +80,6 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ onChange, initialValue }) => {
           scrollBeyondLastLine: false,
           automaticLayout: true,
         }}
-        theme="dark"
-        language="javascript"
-        height="500px"
       />
     </div>
   );
